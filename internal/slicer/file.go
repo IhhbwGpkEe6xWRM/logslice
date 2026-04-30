@@ -32,5 +32,13 @@ func SliceFileToFile(srcPath, dstPath string, opts Options) (int, error) {
 	}
 	defer out.Close()
 
-	return SliceFile(srcPath, out, opts)
+	count, err := SliceFile(srcPath, out, opts)
+	if err != nil {
+		return count, err
+	}
+	// Explicitly sync to ensure data is flushed to disk before returning.
+	if err := out.Sync(); err != nil {
+		return count, fmt.Errorf("slicer: sync %q: %w", dstPath, err)
+	}
+	return count, nil
 }
