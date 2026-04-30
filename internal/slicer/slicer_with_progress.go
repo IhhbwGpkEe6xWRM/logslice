@@ -2,6 +2,7 @@ package slicer
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 
 // SliceWithProgress slices log lines within [from, to] and writes matching
 // lines to dst, reporting progress via reporter.
+// The reporter may be nil, in which case no progress is reported.
 func SliceWithProgress(
 	src io.Reader,
 	dst io.Writer,
@@ -27,7 +29,7 @@ func SliceWithProgress(
 		matched := false
 		if line.InRange(from, to) {
 			if _, err := fmt.Fprintln(dst, raw); err != nil {
-				return collector.Stats(), err
+				return collector.Stats(), fmt.Errorf("writing output: %w", err)
 			}
 			matched = true
 		}
@@ -39,7 +41,7 @@ func SliceWithProgress(
 	}
 
 	if err := scanner.Err(); err != nil {
-		return collector.Stats(), err
+		return collector.Stats(), fmt.Errorf("reading input: %w", err)
 	}
 
 	if reporter != nil {
