@@ -40,3 +40,12 @@ func (s *Stats) MatchRate() float64 {
 	}
 	return float64(s.MatchedLines) / float64(s.TotalLines)
 }
+
+// MatchSpan returns the duration between the first and last matched log entry.
+// It returns 0 if fewer than two matches were recorded.
+func (s *Stats) MatchSpan() time.Duration {
+	if s.FirstMatch == nil || s.LastMatch == nil {
+		return 0
+	}
+	return s.LastMatch.Sub(*s.FirstMatch)
+}
