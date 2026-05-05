@@ -65,3 +65,13 @@ func (l LogLine) InRange(start, end time.Time) bool {
 	}
 	return true
 }
+
+// String returns a human-readable representation of the log line, prefixed
+// with the timestamp in RFC3339Nano format. If the timestamp is zero (e.g. the
+// line was never successfully parsed), the raw content is returned as-is.
+func (l LogLine) String() string {
+	if l.Timestamp.IsZero() {
+		return l.Raw
+	}
+	return l.Timestamp.Format(time.RFC3339Nano) + " " + strings.TrimSpace(l.Raw)
+}
