@@ -75,3 +75,28 @@ func TestMergeFilesToFile(t *testing.T) {
 		t.Error("expected alpha in output file")
 	}
 }
+
+func TestMergeFilesOutputOrdering(t *testing.T) {
+	p1 := writeTempMergeLog(t, []string{
+		"2024-03-01T09:00:00Z info first",
+		"2024-03-01T09:02:00Z info third",
+	})
+	p2 := writeTempMergeLog(t, []string{
+		"2024-03-01T09:01:00Z info second",
+		"2024-03-01T09:03:00Z info fourth",
+	})
+	from := mustTime("2024-03-01T09:00:00Z")
+	to := mustTime("2024-03-01T09:03:00Z")
+	var sb strings.Builder
+	_, err := MergeFiles([]string{p1, p2}, from, to, &sb)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	output := sb.String()
+	posFirst := strings.Index(output, "first")
+	posSecond := strings.Index(output, "second")
+	posThird := strings.Index(output, "third")
+	if posFirst > posSecond || posSecond > posThird {
+		t.Error("expected output lines to be in chronological order")
+	}
+}
