@@ -11,6 +11,15 @@ import (
 
 // RunDedup is the entry-point for the dedup sub-command.
 // Usage: logslice dedup -input FILE -from TIME -to TIME [-window N]
+//
+// Flags:
+//
+//	-input   path to the input log file (required)
+//	-from    start of the time range in RFC3339 format (required)
+//	-to      end of the time range in RFC3339 format (required)
+//	-window  rolling dedup window size; lines within this many positions
+//	         of each other are considered duplicates (default: 1000)
+//	-output  path to the output file; omit to write to stdout
 func RunDedup(args []string) error {
 	fs := flag.NewFlagSet("dedup", flag.ContinueOnError)
 	inputFlag := fs.String("input", "", "path to input log file (required)")
@@ -31,6 +40,9 @@ func RunDedup(args []string) error {
 	}
 	if *toFlag == "" {
 		return fmt.Errorf("flag -to is required")
+	}
+	if *windowFlag <= 0 {
+		return fmt.Errorf("flag -window must be a positive integer, got %d", *windowFlag)
 	}
 
 	from, err := time.Parse(time.RFC3339, *fromFlag)
